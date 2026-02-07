@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Music Player</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* CSS STYLING */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        :root {
+            --primary-color: #ff4757;
+            --secondary-color: #2f3542;
+            --bg-color: #dfe6e9;
+            --text-color: #333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .player-container {
+            background-color: #fff;
+            width: 350px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Album Art */
+        .img-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            animation: rotatePlayer 10s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .img-container.play {
+            animation-play-state: running;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Song Info */
+        h2 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+
+        h3 {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: #dfe6e9;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+            height: 5px;
+            width: 100%;
+        }
+
+        .progress {
+            background-color: var(--primary-color);
+            border-radius: 5px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            background-color: transparent;
+            border: 0;
+            color: #dfe6e9;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 10px;
+            margin: 0 15px;
+            color: var(--secondary-color);
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .action-btn-big {
+            color: var(--primary-color);
+            font-size: 40px;
+            transform: scale(1);
+            transition: transform 0.2s;
+        }
+
+        .action-btn-big:hover {
+            transform: scale(1.1);
+        }
+
+        /* Volume Control */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .volume-slider {
+            width: 60%;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        /* Playlist (Bonus) */
+        .playlist {
+            margin-top: 20px;
+            text-align: left;
+            border-top: 1px solid #dfe6e9;
+            padding-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .playlist h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+
+        .playlist ul {
+            list-style-type: none;
+        }
+
+        .playlist li {
+            padding: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f2f6;
+            color: #7f8c8d;
+            transition: background 0.2s;
+        }
+
+        .playlist li:hover {
+            background-color: #f1f2f6;
+            color: var(--primary-color);
+        }
+
+        .playlist li.active-song {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Animation Keyframes */
+        @keyframes rotatePlayer {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-container">
+        <div class="img-container" id="img-container">
+            <img src="https://via.placeholder.com/200/FF4757/FFFFFF?text=Music" alt="album-art" id="cover">
+        </div>
+
+        <h2 id="title">Song Title</h2>
+        <h3 id="artist">Artist Name</h3>
+
+        <audio id="audio"></audio>
+
+        <div class="progress-container" id="progress-container">
+            <div class="progress" id="progress"></div>
+        </div>
+        <div class="time-display">
+            <span id="currTime">0:00</span>
+            <span id="durTime">0:00</span>
+        </div>
+
+        <div class="controls">
+            <button id="prev" class="action-btn">
+                <i class="fas fa-backward"></i>
+            </button>
+            <button id="play" class="action-btn action-btn-big">
+                <i class="fas fa-play"></i>
+            </button>
+            <button id="next" class="action-btn">
+                <i class="fas fa-forward"></i>
+            </button>
+        </div>
+
+        <div class="volume-container">
+            <i class="fas fa-volume-up"></i>
+            <input type="range" id="volume" class="volume-slider" min="0" max="1" step="0.01" value="1">
+        </div>
+
+        <div class="playlist">
+            <h4>Playlist</h4>
+            <ul id="playlist-items">
+                </ul>
+        </div>
+    </div>
+
+    <script>
+        /* JAVASCRIPT LOGIC */
+        
+        const musicContainer = document.querySelector('.player-container');
+        const playBtn = document.getElementById('play');
+        const prevBtn = document.getElementById('prev');
+        const nextBtn = document.getElementById('next');
+        const audio = document.getElementById('audio');
+        const progress = document.getElementById('progress');
+        const progressContainer = document.getElementById('progress-container');
+        const title = document.getElementById('title');
+        const artist = document.getElementById('artist');
+        const cover = document.getElementById('cover');
+        const imgContainer = document.getElementById('img-container');
+        const currTime = document.querySelector('#currTime');
+        const durTime = document.querySelector('#durTime');
+        const volumeSlider = document.getElementById('volume');
+        const playlistItems = document.getElementById('playlist-items');
+
+        
+       // Song List - Using online royalty-free URLs
+        const songs = [
+            {
+                title: "Hey!",
+                artist: "Bensound",
+                src: "https://www.bensound.com/bensound-music/bensound-hey.mp3",
+                cover: "https://www.bensound.com/bensound-img/hey.jpg"
+            },
+            {
+                title: "Summer",
+                artist: "Bensound",
+                src: "https://www.bensound.com/bensound-music/bensound-summer.mp3",
+                cover: "https://www.bensound.com/bensound-img/summer.jpg"
+            },
+            {
+                title: "Energy",
+                artist: "Bensound",
+                src: "https://www.bensound.com/bensound-music/bensound-energy.mp3",
+                cover: "https://www.bensound.com/bensound-img/energy.jpg"
+            }
+        ];
+
+        // Keep track of song
+        let songIndex = 0;
+
+        // Initially load song details into DOM
+        loadSong(songs[songIndex]);
+
+        // Render Playlist
+        function renderPlaylist() {
+            playlistItems.innerHTML = "";
+            songs.forEach((song, index) => {
+                const li = document.createElement('li');
+                li.innerText = `${song.title} - ${song.artist}`;
+                if (index === songIndex) {
+                    li.classList.add('active-song');
+                }
+                li.addEventListener('click', () => {
+                    songIndex = index;
+                    loadSong(songs[songIndex]);
+                    playSong();
+                });
+                playlistItems.appendChild(li);
+            });
+        }
+        renderPlaylist();
+
+        // Update song details
+        function loadSong(song) {
+            title.innerText = song.title;
+            artist.innerText = song.artist;
+            audio.src = song.src;
+            cover.src = song.cover;
+            renderPlaylist(); // Update active class in playlist
+        }
+
+        // Play Song
+        function playSong() {
+            musicContainer.classList.add('play');
+            imgContainer.classList.add('play');
+            playBtn.querySelector('i.fas').classList.remove('fa-play');
+            playBtn.querySelector('i.fas').classList.add('fa-pause');
+            audio.play();
+        }
+
+        // Pause Song
+        function pauseSong() {
+            musicContainer.classList.remove('play');
+            imgContainer.classList.remove('play');
+            playBtn.querySelector('i.fas').classList.add('fa-play');
+            playBtn.querySelector('i.fas').classList.remove('fa-pause');
+            audio.pause();
+        }
+
+        // Previous Song
+        function prevSong() {
+            songIndex--;
+            if (songIndex < 0) {
+                songIndex = songs.length - 1;
+            }
+            loadSong(songs[songIndex]);
+            playSong();
+        }
+
+        // Next Song
+        function nextSong() {
+            songIndex++;
+            if (songIndex > songs.length - 1) {
+                songIndex = 0;
+            }
+            loadSong(songs[songIndex]);
+            playSong();
+        }
+
+        // Update Progress bar
+        function updateProgress(e) {
+            const { duration, currentTime } = e.srcElement;
+            const progressPercent = (currentTime / duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+
+            // Calculate display time
+            const mins = Math.floor(currentTime / 60);
+            let secs = Math.floor(currentTime % 60);
+            if (secs < 10) secs = '0' + secs;
+            currTime.innerText = `${mins}:${secs}`;
+
+            // Calculate duration time
+            if(duration) {
+                const totalMins = Math.floor(duration / 60);
+                let totalSecs = Math.floor(duration % 60);
+                if (totalSecs < 10) totalSecs = '0' + totalSecs;
+                durTime.innerText = `${totalMins}:${totalSecs}`;
+            }
+        }
+
+        // Set Progress on click
+        function setProgress(e) {
+            const width = this.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        }
+
+        // Set Volume
+        function setVolume(e) {
+            audio.volume = e.target.value;
+        }
+
+        // Event Listeners
+        playBtn.addEventListener('click', () => {
+            const isPlaying = musicContainer.classList.contains('play');
+            if (isPlaying) {
+                pauseSong();
+            } else {
+                playSong();
+            }
+        });
+
+        // Change Song
+        prevBtn.addEventListener('click', prevSong);
+        nextBtn.addEventListener('click', nextSong);
+
+        // Time/Song Update
+        audio.addEventListener('timeupdate', updateProgress);
+        
+        // Click on progress bar
+        progressContainer.addEventListener('click', setProgress);
+
+        // Song ends (Autoplay next)
+        audio.addEventListener('ended', nextSong);
+
+        // Volume Change
+        volumeSlider.addEventListener('input', setVolume);
+
+    </script>
+</body>
+</html>
